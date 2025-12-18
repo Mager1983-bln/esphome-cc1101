@@ -1,12 +1,13 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import text_sensor, switch
-from esphome.const import CONF_ID, CONF_NAME, CONF_CS_PIN
+from esphome.const import CONF_ID, CONF_NAME
 
 cc1101_ns = cg.esphome_ns.namespace("cc1101")
 CC1101Component = cc1101_ns.class_("CC1101Component", cg.Component)
 CC1101TxSwitch = cc1101_ns.class_("CC1101TxSwitch", switch.Switch)
 
+CONF_CS_PIN = "cs_pin"
 CONF_GDO0_PIN = "gdo0_pin"
 CONF_GDO2_PIN = "gdo2_pin"
 CONF_FREQUENCY = "frequency"
@@ -23,7 +24,7 @@ CONFIG_SCHEMA = cv.Schema({
     cv.Required(CONF_GDO0_PIN): cv.int_,
     cv.Required(CONF_GDO2_PIN): cv.int_,
     cv.Required(CONF_FREQUENCY): cv.float_,
-    cv.Required(CONF_MODULATION): cv.string,
+    cv.Required(CONF_MODULATION): cv.one_of("OOK", "FSK", upper=True),
     cv.Required(CONF_BITRATE): cv.float_,
     cv.Required(CONF_BANDWIDTH): cv.float_,
     cv.Required(CONF_TX_POWER): cv.int_,
