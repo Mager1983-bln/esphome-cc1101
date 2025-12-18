@@ -8,35 +8,35 @@ static const char *TAG = "cc1101";
 
 void CC1101Component::setup() {
   // RadioLib Modulobjekt aus Pins bauen
-  this->module_ = new Module(this->cfg.cs_pin, this->cfg.gdo0_pin, this->cfg.gdo2_pin);
+  this->module_ = new Module(this->cs_pin_, this->gdo0_pin_, this->gdo2_pin_);
   this->radio_ = new CC1101(this->module_);
 
   int state = this->radio_->begin();
   if (state != RADIOLIB_ERR_NONE) {
     ESP_LOGE(TAG, "Init fehlgeschlagen: %d", state);
-    if (this->rx_sensor) this->rx_sensor->publish_state("Init-Fehler");
+    if (this->rx_sensor_) this->rx_sensor_->publish_state("Init-Fehler");
     return;
   }
 
   // Frequenz
-  this->radio_->setFrequency(this->cfg.frequency);
+  this->radio_->setFrequency(this->frequency_);
 
   // Modulation
-  if (this->cfg.modulation == "OOK") {
+  if (this->modulation_ == "OOK") {
     this->radio_->setOOK(true);
   } else {
     this->radio_->setOOK(false); // FSK
   }
 
   // Bitrate & Bandbreite
-  this->radio_->setBitRate(this->cfg.bitrate_kbps);
-  this->radio_->setRxBandwidth(this->cfg.rx_bandwidth_khz);
+  this->radio_->setBitRate(this->bitrate_kbps_);
+  this->radio_->setRxBandwidth(this->rx_bandwidth_khz_);
 
   // Sendeleistung
-  this->radio_->setOutputPower(this->cfg.tx_power_dbm);
+  this->radio_->setOutputPower(this->tx_power_dbm_);
 
-  ESP_LOGI(TAG, "CC1101 bereit (%.2f MHz, %s)", this->cfg.frequency, this->cfg.modulation.c_str());
-  if (this->rx_sensor) this->rx_sensor->publish_state("Bereit");
+  ESP_LOGI(TAG, "CC1101 bereit (%.2f MHz, %s)", this->frequency_, this->modulation_.c_str());
+  if (this->rx_sensor_) this->rx_sensor_->publish_state("Bereit");
 }
 
 void CC1101Component::loop() {
@@ -47,17 +47,17 @@ void CC1101Component::loop() {
   int state = this->radio_->receive(payload);
   if (state == RADIOLIB_ERR_NONE && payload.length() > 0) {
     ESP_LOGD(TAG, "RX: %s", payload.c_str());
-    if (this->rx_sensor) this->rx_sensor->publish_state(payload.c_str());
+    if (this->rx_sensor_) this->rx_sensor_->publish_state(payload.c_str());
   }
 }
 
 void CC1101Component::dump_config() {
   ESP_LOGCONFIG(TAG, "CC1101:");
-  ESP_LOGCONFIG(TAG, "  CS: GPIO%d, GDO0: GPIO%d, GDO2: GPIO%d", this->cfg.cs_pin, this->cfg.gdo0_pin, this->cfg.gdo2_pin);
+  ESP_LOGCONFIG(TAG, "  CS: GPIO%d, GDO0: GPIO%d, GDO2: GPIO%d", this->cs_pin_, this->gdo0_pin_, this->gdo2_pin_);
   ESP_LOGCONFIG(TAG, "  Freq: %.2f MHz, Mod: %s, Bitrate: %.2f kbps, BW: %.2f kHz, Pwr: %d dBm",
-                this->cfg.frequency, this->cfg.modulation.c_str(),
-                this->cfg.bitrate_kbps, this->cfg.rx_bandwidth_khz,
-                this->cfg.tx_power_dbm);
+                this->frequency_, this->modulation_.c_str(),
+                this->bitrate_kbps_, this->rx_bandwidth_khz_,
+                this->tx_power_dbm_);
 }
 
 void CC1101TxSwitch::write_state(bool state) {
