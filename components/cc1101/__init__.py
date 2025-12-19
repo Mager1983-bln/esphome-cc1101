@@ -20,14 +20,20 @@ CONF_TX_SWITCH = "tx_switch"
 
 CONFIG_SCHEMA = cv.Schema({
     cv.GenerateID(): cv.declare_id(CC1101Component),
-    cv.Required(CONF_CS_PIN): cv.int_,
-    cv.Required(CONF_GDO0_PIN): cv.int_,
-    cv.Required(CONF_GDO2_PIN): cv.int_,
+
+    # ✅ Pins korrekt validieren
+    cv.Required(CONF_CS_PIN): cv.pin,
+    cv.Required(CONF_GDO0_PIN): cv.pin,
+    cv.Required(CONF_GDO2_PIN): cv.pin,
+
+    # ✅ Zahlen
     cv.Required(CONF_FREQUENCY): cv.float_,
     cv.Required(CONF_MODULATION): cv.one_of("OOK", "FSK", upper=True),
     cv.Required(CONF_BITRATE): cv.float_,
     cv.Required(CONF_BANDWIDTH): cv.float_,
     cv.Required(CONF_TX_POWER): cv.int_,
+
+    # ✅ Entities
     cv.Optional(CONF_RX_SENSOR): text_sensor.text_sensor_schema(CONF_NAME),
     cv.Optional(CONF_TX_SWITCH): switch.switch_schema(CC1101TxSwitch),
 })
@@ -36,19 +42,24 @@ async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
 
+    # ✅ Pins
     cg.add(var.set_cs_pin(config[CONF_CS_PIN]))
     cg.add(var.set_gdo0_pin(config[CONF_GDO0_PIN]))
     cg.add(var.set_gdo2_pin(config[CONF_GDO2_PIN]))
+
+    # ✅ Radio-Parameter
     cg.add(var.set_frequency(config[CONF_FREQUENCY]))
     cg.add(var.set_modulation(config[CONF_MODULATION]))
     cg.add(var.set_bitrate(config[CONF_BITRATE]))
     cg.add(var.set_bandwidth(config[CONF_BANDWIDTH]))
     cg.add(var.set_tx_power(config[CONF_TX_POWER]))
 
+    # ✅ Textsensor
     if CONF_RX_SENSOR in config:
         sens = await text_sensor.new_text_sensor(config[CONF_RX_SENSOR])
         cg.add(var.set_rx_sensor(sens))
 
+    # ✅ Switch
     if CONF_TX_SWITCH in config:
         sw = await switch.new_switch(config[CONF_TX_SWITCH])
         cg.add(var.set_tx_switch(sw))
